@@ -3,11 +3,6 @@ import re
 import csv
 
 def parse_custom_log_line(line):
-    """
-    Parses a line like:
-    2021-04-16T16:10:00Z vmauthd[69698]: DictionaryLoad: Cannot open file ...
-    Returns a tuple: (timestamp, process, pid, message)
-    """
     pattern = r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)\s+([\w\-]+)\[(\d+)\]:\s+(.*)'
     match = re.match(pattern, line)
     if match:
@@ -34,3 +29,4 @@ if __name__ == "__main__":
     output_path = sys.argv[2]
     parse_log_to_csv(input_path, output_path)
     print(f"Log parsed and written to: {output_path}")
+
