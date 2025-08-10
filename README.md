@@ -1,5 +1,4 @@
 # LinuxParsers
-Some Linux file parsers that were vibe coded.
 
 |Linux Parser              |File parsed        |Input file names|Output file name|Output timezone|Flags|Sample command|Remarks|
 | ------------- |:-------------:|-|-|-|-|-|-|
