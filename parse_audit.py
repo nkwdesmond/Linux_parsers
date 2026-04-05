@@ -61,7 +61,6 @@ def process_file(input_path, output_path):
     print(f"✅ Parsed: {input_path} → {output_path}")
 
 def is_audit_log_file(filename):
-    # Matches audit.log, audit.log.N, audit.log.gz, audit.log.N.gz, audit.log_SkibiDi_77.gz, audit.log.5_hippo_31.gz
     return re.match(r'audit\.log([._][\w\d]+)*(\.gz)?$', filename)
 
 def main():
