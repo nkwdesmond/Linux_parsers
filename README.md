@@ -12,10 +12,10 @@ A collection of Python scripts to parse common Linux log files into structured C
 | Parser | Log Type | 
 |--------|----------|
 | parse_audit.py | audit.log |
-| parse_authlog.py | auth.log and secure |
+| parse_authSecure.py | auth.log and secure |
 | parse_bashHistory.py | .bash_history |
 | parse_lastlog_passwd.py | lastlog |
-| parse_secureAndMessage.py | syslog and messages |
+| parse_syslogMessages.py | syslog and messages |
 | parse_wtmp.py | wtmp |
 
 ## 📦 Parsers
