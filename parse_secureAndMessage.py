@@ -1,109 +1,269 @@
 #!/usr/bin/env python3
 
-import sys
-import csv
-import re
-import os
-import gzip
 import argparse
+import os
+import csv
+import gzip
+import re
+import shutil
 from datetime import datetime
 
-MONTH_MAP = {
-    'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04',
-    'May': '05', 'Jun': '06', 'Jul': '07', 'Aug': '08',
-    'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12'
+# -----------------------------
+# Regex patterns
+# -----------------------------
+
+# Classic syslog format
+SYSLOG_PATTERN = re.compile(
+    r'^(?P<month>\w{3})\s+(?P<day>\d{1,2})\s+'
+    r'(?P<time>\d{2}:\d{2}:\d{2})\s+'
+    r'(?P<host>\S+)\s+'
+    r'(?P<process>[\w\-/\.]+)(?:\[(?P<pid>\d+)\])?:\s+'
+    r'(?P<message>.*)$'
+)
+
+# ISO8601 timestamp format
+ISO_PATTERN = re.compile(
+    r'^(?P<timestamp_iso>'
+    r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}'
+    r'(?:\.\d+)?'
+    r'(?:Z|[+-]\d{2}:\d{2})?'
+    r')\s+'
+    r'(?P<host>\S+)\s+'
+    r'(?P<process>[\w\-/\.]+)(?:\[(?P<pid>\d+)\])?:\s+'
+    r'(?P<message>.*)$'
+)
+
+MONTHS = {
+    'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+    'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+    'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
 }
 
-def parse_event(event):
-    # Match: process[pid]: message OR process: message
-    match = re.match(r'([^\[\]:]+)\[(\d+)\]: (.+)', event)
+# -----------------------------
+# Gzip extraction
+# -----------------------------
+
+def extract_gzip(gz_path):
+    extracted_path = gz_path[:-3]
+
+    if os.path.exists(extracted_path):
+        return extracted_path
+
+    print(f"[+] Extracting {gz_path} → {extracted_path}")
+
+    with gzip.open(gz_path, 'rb') as gz, open(extracted_path, 'wb') as out:
+        shutil.copyfileobj(gz, out)
+
+    gz_stat = os.stat(gz_path)
+    os.utime(extracted_path, (gz_stat.st_atime, gz_stat.st_mtime))
+
+    return extracted_path
+
+# -----------------------------
+# Line parsing
+# -----------------------------
+
+def parse_syslog_line(line, year):
+
+    # -------- ISO timestamp --------
+    iso_match = ISO_PATTERN.match(line)
+    if iso_match:
+        data = iso_match.groupdict()
+
+        return {
+            'timestamp': data['timestamp_iso'],
+            'month': '',
+            'day': '',
+            'time': '',
+            'host': data['host'],
+            'process': data['process'],
+            'pid': data['pid'],
+            'message': data['message'],
+            'malformed': ''
+        }
+
+    # -------- Classic syslog --------
+    match = SYSLOG_PATTERN.match(line)
     if match:
-        process, pid, msg = match.groups()
-        message = f"{process}: {msg}"  # Exclude [pid] from message
+        data = match.groupdict()
+
+        try:
+            timestamp = datetime(
+                year=year,
+                month=MONTHS[data['month']],
+                day=int(data['day']),
+                hour=int(data['time'][0:2]),
+                minute=int(data['time'][3:5]),
+                second=int(data['time'][6:8])
+            ).isoformat()
+
+            return {
+                'timestamp': timestamp,
+                'month': data['month'],
+                'day': data['day'],
+                'time': data['time'],
+                'host': data['host'],
+                'process': data['process'],
+                'pid': data['pid'],
+                'message': data['message'],
+                'malformed': ''
+            }
+
+        except Exception:
+            pass
+
+    # -------- malformed --------
+    return {
+        'timestamp': '',
+        'month': '',
+        'day': '',
+        'time': '',
+        'host': '',
+        'process': '',
+        'pid': '',
+        'message': line,
+        'malformed': 'PARSE_ERROR'
+    }
+
+# -----------------------------
+# File processing
+# -----------------------------
+
+def process_file(file_path, extract=False, log_malformed=False):
+
+    is_gz = file_path.endswith('.gz')
+
+    if is_gz and extract:
+        file_path = extract_gzip(file_path)
+
+    print(f"[+] Processing {file_path}")
+
+    if is_gz and not extract:
+        log_fh = gzip.open(file_path, 'rt', errors='replace')
+        mtime_source = file_path
     else:
-        parts = event.split(": ", 1)
-        process = parts[0].strip()
-        pid = ""
-        msg = parts[1].strip() if len(parts) > 1 else ""
-        message = f"{process}: {msg}" if msg else process
-    return process, pid, message
+        log_fh = open(file_path, 'r', errors='replace')
+        mtime_source = file_path
 
-def parse_line(line, year):
-    parts = line.strip().split(maxsplit=4)
-    if len(parts) < 5:
-        return None
+    current_year = datetime.fromtimestamp(os.path.getmtime(mtime_source)).year
+    previous_month = None
 
-    month_str, day_str, time_str, hostname, event = parts
-    month = MONTH_MAP.get(month_str)
-    if not month:
-        return None
+    output_csv = file_path + '.csv'
+    malformed_file = file_path + '.malformed.log' if log_malformed else None
 
-    try:
-        datetime_str = f"{year}/{month}/{int(day_str):02d} {time_str}"
-        process, pid, message = parse_event(event)
-        return [datetime_str, hostname, process, pid, message]
-    except Exception:
-        return None
+    with log_fh as f, \
+         open(output_csv, 'w', newline='', encoding='utf-8') as csvfile, \
+         open(malformed_file, 'w', encoding='utf-8') if log_malformed else open(os.devnull, 'w') as malformed_log:
 
-def open_log_file(path):
-    if path.endswith(".gz"):
-        return gzip.open(path, 'rt', encoding='utf-8', errors='ignore')
-    else:
-        return open(path, 'r', encoding='utf-8', errors='ignore')
+        fieldnames = [
+            'timestamp', 'month', 'day', 'time',
+            'host', 'process', 'pid', 'message', 'malformed'
+        ]
 
-def process_file(input_path, output_path):
-    try:
-        mod_time = os.path.getmtime(input_path)
-        inferred_year = datetime.fromtimestamp(mod_time).year
-    except Exception as e:
-        print(f"⚠️ Error reading file modification time: {e}")
-        inferred_year = datetime.now().year
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
 
-    with open_log_file(input_path) as infile, \
-         open(output_path, 'w', newline='', encoding='utf-8') as outfile:
+        for line in f:
 
-        writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, escapechar='\\')
-        writer.writerow(["Timestamp_(Local)", "hostname", "process", "pid", "message"])
+            line = line.rstrip()
 
-        for line in infile:
-            parsed = parse_line(line, inferred_year)
-            if parsed:
-                writer.writerow(parsed)
+            # rollover detection only applies to classic syslog format
+            month_match = re.match(r'^(\w{3})\s+\d{1,2}', line)
 
-    print(f"✅ Parsed: {input_path} → {output_path}")
+            if month_match:
+                month_num = MONTHS.get(month_match.group(1))
+
+                if previous_month is not None and month_num < previous_month:
+                    current_year += 1
+
+                previous_month = month_num
+
+            parsed = parse_syslog_line(line, current_year)
+
+            writer.writerow(parsed)
+
+            if parsed['malformed'] == 'PARSE_ERROR' and log_malformed:
+                malformed_log.write(line + '\n')
+
+    print(f"[+] CSV saved: {output_csv}")
+
+    if log_malformed:
+        print(f"[+] Malformed lines logged: {malformed_file}")
+
+# -----------------------------
+# Directory discovery
+# -----------------------------
+
+def find_syslog_files(directory):
+
+    files = []
+
+    for f in os.listdir(directory):
+
+        if re.match(r'^(syslog|messages)(\.\d+)?(\.gz)?$', f):
+            files.append(os.path.join(directory, f))
+
+    return sorted(files)
+
+# -----------------------------
+# CLI
+# -----------------------------
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse Linux secure/messages logs (supports .gz) into CSV.")
+
+    parser = argparse.ArgumentParser(
+        description='Parse Linux syslog/messages files to CSV with optional gzip extraction'
+    )
+
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-f', '--file', help="Single log file to parse")
-    group.add_argument('-d', '--dir', help="Directory of log files to parse")
+
+    group.add_argument(
+        '-f', '--file',
+        help='Single syslog/messages file'
+    )
+
+    group.add_argument(
+        '-d', '--dir',
+        help='Directory containing syslog/messages files'
+    )
+
+    parser.add_argument(
+        '-e', '--extract',
+        action='store_true',
+        help='Extract .gz files to disk before parsing'
+    )
+
+    parser.add_argument(
+        '--log-malformed',
+        action='store_true',
+        help='Save malformed lines to a separate log file'
+    )
 
     args = parser.parse_args()
 
-    def is_valid_log(filename):
-        base = os.path.basename(filename)
-        return (base.startswith("messages") or base.startswith("secure")) and \
-            (base.endswith(".gz") or '.' not in os.path.splitext(base)[1])
-  
     if args.file:
-        if not os.path.isfile(args.file):
-            print(f"❌ File not found: {args.file}")
-            sys.exit(1)
-        output_file = args.file + ".csv"
-        process_file(args.file, output_file)
 
-    elif args.dir:
-        if not os.path.isdir(args.dir):
-            print(f"❌ Directory not found: {args.dir}")
-            sys.exit(1)
+        process_file(
+            args.file,
+            args.extract,
+            args.log_malformed
+        )
 
-        for fname in os.listdir(args.dir):
-            if not is_valid_log(fname):
-                continue
-            full_path = os.path.join(args.dir, fname)
-            if os.path.isfile(full_path):
-                output_file = full_path + ".csv"
-                process_file(full_path, output_file)
+    else:
+
+        files = find_syslog_files(args.dir)
+
+        if not files:
+            print("[-] No syslog/messages files found")
+            return
+
+        for f in files:
+
+            process_file(
+                f,
+                args.extract,
+                args.log_malformed
+            )
 
 if __name__ == '__main__':
     main()
