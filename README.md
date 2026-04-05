@@ -102,7 +102,7 @@ A collection of Python scripts to parse common Linux log files into structured C
 - **Features:**
   - Supports both plain text and `.gz` compressed log files
   - Automatically detects and parses:
-    - Syslog format (e.g., `Jan 10 12:34:56`)
+    - Syslog format (e.g., `Jan 10 12:34:56`), with the year being inferred from the modified time of the file
     - ISO 8601 format (e.g., `2024-01-10T12:34:56+00:00`)
   - Extracts authentication details:
     - `user`
@@ -113,6 +113,7 @@ A collection of Python scripts to parse common Linux log files into structured C
     - Accepted, Failed, Invalid, Disconnected, Session opened/closed, etc.
   - Handles year rollover automatically when parsing rotated logs
   - Optional extraction of `.gz` files before parsing
+    - The extracted file will then be parsed
   - Optional logging of malformed/unparsed lines
   - Batch processing of multiple log files in a directory
 
