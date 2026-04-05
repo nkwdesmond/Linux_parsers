@@ -7,7 +7,7 @@
 
 A collection of Python scripts to parse common Linux log files into structured CSV outputs for digital forensic analysis.
 
-## 🔍 Parser Overview
+## 🔍 Overview
 
 | Parser | Log Type | 
 |--------|----------|
