@@ -5,7 +5,7 @@
 ![Status](https://img.shields.io/badge/status-active-darkgreen)
 ![Use Case](https://img.shields.io/badge/use--case-DFIR%20%7C%20Log%20Parsing-purple)
 
-A collection of Python scripts to parse common Linux log files into structured CSV outputs for digital forensic analysis.
+A collection of Python scripts to parse common Linux log files into structured CSV outputs for digital forensics analysis.
 
 ## 🔍 Overview
 
