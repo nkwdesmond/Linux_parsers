@@ -1,4 +1,4 @@
-# 🐧 Linux Log Parsers (Python 🐍)
+# 🐧 Linux Log Parsers
 
 ![Platform](https://img.shields.io/badge/platform-linux-gold)
 ![Python](https://img.shields.io/badge/python-3.x-blue)
@@ -7,7 +7,7 @@
 
 A collection of Python scripts to parse common Linux log files into structured CSV outputs for digital forensics analysis.
 
-## 🔍 Overview
+## 🔮 Overview
 
 | Parser | Log Type | 
 |--------|----------|
@@ -21,60 +21,78 @@ A collection of Python scripts to parse common Linux log files into structured C
 ## 📦 Parsers
 <details>
 <summary><strong>parse_audit.py</strong></summary>
+  
+---
 
-- **Description:**
-  - Parses Linux `audit.log` files into structured CSV format.
-  - Extracts key audit fields and normalizes timestamps into a human-readable format (GMT+8).
+### 📌 Description
+- Parses Linux `audit.log` files into structured CSV format.
+- Extracts key audit fields and normalizes timestamps into a human-readable format (GMT+8).
+  
+---
 
-- **Features:**
-  - Supports both plain text and `.gz` compressed audit logs
-  - Extracts important fields such as:
-    - `epoch`
-    - `timestamp_GMT+8`
-    - `type`
-    - `exe`
-    - `uid`
-    - `auid`
-    - `syscall`
-  - Preserves the original log line (cleaned) in a `data` column
-  - Converts epoch timestamps to human-readable format with millisecond precision
-  - Batch processing of multiple files in a directory
+### ✨ Features
+- Supports both plain text and `.gz` compressed audit logs
+- Extracts important fields such as:
+  - `epoch`
+  - `timestamp_GMT+8`
+  - `type`
+  - `exe`
+  - `uid`
+  - `auid`
+  - `syscall`
+- Preserves the original log line (cleaned) in a `data` column
+- Converts epoch timestamps to human-readable format with millisecond precision
+- Batch processing of multiple files in a directory
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `audit.log`
   - Variants supported:
     - `audit.log.N`
     - `audit.log.gz`
     - `audit.log.N.gz`
     - Custom variants like `audit.log_<suffix>.gz`
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - Yes
   - Matches files using pattern:
     - `audit.log*` (including numbered, suffixed, and `.gz` files)
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - Input file name appended with `.csv`
   - Examples:
     - `audit.log` → `audit.log.csv`
     - `audit.log.1.gz` → `audit.log.1.gz.csv`
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Same directory as input file
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - GMT+8
   - Original epoch timestamp is also preserved
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - `-f`, `--file`
     - Parse a single audit log file
   - `-d`, `--dir`
     - Parse all matching audit log files in a directory
   - Notes:
     - Flags are mutually exclusive (must use either `-f` or `-d`)
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Parse a single file:
     ```bash
     parse_audit.py -f audit.log
@@ -87,19 +105,25 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     parse_audit.py -d /path/to/audit_logs/
     ```
+  
+---
 
 </details>
 
 
 <details>
 <summary><strong>parse_authSecure.py</strong></summary>
+  
+---
 
-- **Description:**
+### 📌 Description
   - Parses Linux authentication logs (`auth.log` and `secure`) into structured CSV format.
   - Supports both traditional syslog format and ISO 8601 timestamps.
   - Extracts authentication-related details such as user, IP address, port, method, and login result.
+  
+---
 
-- **Features:**
+### ✨ Features
   - Supports both plain text and `.gz` compressed log files
   - Automatically detects and parses:
     - Syslog format (e.g., `Jan 10 12:34:56`), with the year being inferred from the modified time of the file
@@ -116,35 +140,47 @@ A collection of Python scripts to parse common Linux log files into structured C
     - The extracted file will then be parsed
   - Optional logging of malformed/unparsed lines
   - Batch processing of multiple log files in a directory
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `auth.log`
   - `secure`
   - Variants supported:
     - Rotated logs (e.g., `auth.log.1`, `secure-20240101`)
     - Compressed logs (e.g., `.gz`)
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - Yes
   - Matches files using pattern:
     - `auth.log*`
     - `secure*`
     - Includes rotated and compressed variants
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - Input file name appended with `.csv`
   - Examples:
     - `auth.log` → `auth.log.csv`
     - `secure-20240101.gz` → `secure-20240101.gz.csv`
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Same directory as input file
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - Logging system's local time zone
   - ISO timestamps are preserved as-is (normalized to space-separated format)
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - `-f`, `--file`
     - Parse a single log file
   - `-d`, `--dir`
@@ -155,8 +191,10 @@ A collection of Python scripts to parse common Linux log files into structured C
     - Output unparsed/malformed lines to a `.malformed.log` file
   - Notes:
     - `-f` and `-d` are mutually exclusive (must use one)
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Parse a single file:
     ```bash
     parse_authSecure.py -f auth.log
@@ -177,18 +215,24 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     parse_authSecure.py -f auth.log --log-malformed
     ```
+  
+---
 
 </details>
 
 
 <details>
 <summary><strong>parse_bashHistory.py</strong></summary>
+  
+---
 
-- **Description:**
+### 📌 Description
   - Parses Linux `.bash_history` files into CSV format.
   - Extracts executed commands and associates them with timestamps when available.
+  
+---
 
-- **Features:**
+### ✨ Features
   - Supports parsing of standard `.bash_history` files
   - Detects and processes epoch timestamps (if present)
     - Converts epoch timestamps to human-readable format (GMT+8)
@@ -197,37 +241,51 @@ A collection of Python scripts to parse common Linux log files into structured C
     - Commands without timestamps (marked as `N/A`)
   - Outputs clean CSV with proper escaping for special characters
   - Batch processing of multiple files in a directory
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `.bash_history`
   - Any file following bash history format (including exported or copied history files)
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - No strict filtering
   - Processes **all files** in the specified directory
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - Input file name appended with `.csv`
   - Examples:
     - `.bash_history` → `.bash_history.csv`
     - `user_history` → `user_history.csv`
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Same directory as input file
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - GMT+8 (for entries with epoch timestamps)
   - Entries without timestamps are marked as `N/A`
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - `-f`, `--file`
     - Parse a single `.bash_history` file
   - `-d`, `--dir`
     - Parse all files in a directory
   - Notes:
     - Flags are mutually exclusive (must use either `-f` or `-d`)
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Parse a single file:
     ```bash
     parse_bashHistory.py -f .bash_history
@@ -236,18 +294,24 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     parse_bashHistory.py -d /path/to/history_files/
     ```
+  
+---
 
 </details>
 
 
 <details>
 <summary><strong>parse_lastlog_passwd.py</strong></summary>
+  
+---
 
-- **Description:**
+### 📌 Description
   - Parses Linux `lastlog` binary file and maps user IDs (UIDs) to usernames using a provided `/etc/passwd` file.
   - Outputs last login information for each user in a structured CSV format.
+  
+---
 
-- **Features:**
+### ✨ Features
   - Reads and parses binary `lastlog` structure
   - Maps UIDs to usernames using an external `passwd` file
   - Extracts key fields:
@@ -258,34 +322,48 @@ A collection of Python scripts to parse common Linux log files into structured C
   - Identifies users who have never logged in
   - Handles missing or incomplete entries gracefully
   - Outputs clean CSV for easy analysis
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `lastlog` (binary file)
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - No
   - Requires explicit file paths for both:
     - `lastlog`
     - `passwd`
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - `lastlog_output.csv` (if not specified)
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Current working directory (unless a custom output path is provided)
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - UTC
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - None (uses positional arguments instead)
   - Required arguments:
     - Path to `lastlog` file
     - Path to `passwd` file
   - Optional argument:
     - Output CSV file path
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Basic usage:
     ```bash
     python parse_lastlog.py /path/to/lastlog /path/to/passwd
@@ -294,19 +372,25 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     python parse_lastlog.py /path/to/lastlog /path/to/passwd output.csv
     ```
+  
+---
 
 </details>
 
 
 <details>
 <summary><strong>parse_syslogMessages.py</strong></summary>
+  
+---
 
-- **Description:**
+### 📌 Description
   - Parses Linux `syslog` and `messages` log files into structured CSV format.
   - Supports both traditional syslog timestamps and modern ISO-8601 formats.
   - Designed for system log analysis and forensic investigations.
+  
+---
 
-- **Features:**
+### ✨ Features
   - Supports both plain text and `.gz` compressed log files
   - Parses multiple timestamp formats:
     - Classic syslog format (e.g., `Jan 25 10:15:03`)
@@ -323,15 +407,19 @@ A collection of Python scripts to parse common Linux log files into structured C
   - Optional extraction of `.gz` files before parsing
   - Optional logging of malformed/unparsed lines
   - Batch processing of multiple log files in a directory
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `syslog`
   - `messages`
   - Variants supported:
     - Rotated logs (e.g., `syslog.1`, `messages.2`)
     - Compressed logs (e.g., `.gz`)
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - Yes
   - Matches files using pattern:
     - `syslog`
@@ -339,22 +427,30 @@ A collection of Python scripts to parse common Linux log files into structured C
     - `messages`
     - `messages.N`
     - Includes `.gz` variants
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - Input file name appended with `.csv`
   - Examples:
     - `syslog` → `syslog.csv`
     - `messages.1.gz` → `messages.1.gz.csv`
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Same directory as input file
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - Derived from log content:
     - ISO timestamps retain their original timezone (if present)
     - Classic syslog timestamps use system file modification year (no explicit timezone)
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - `-f`, `--file`
     - Parse a single syslog/messages file
   - `-d`, `--dir`
@@ -365,8 +461,10 @@ A collection of Python scripts to parse common Linux log files into structured C
     - Save malformed/unparsed lines to a `.malformed.log` file
   - Notes:
     - `-f` and `-d` are mutually exclusive (must use one)
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Parse a single file:
     ```bash
     parse_syslogMessages.py -f syslog
@@ -387,18 +485,24 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     parse_syslogMessages.py -f syslog --log-malformed
     ```
+  
+---
 
 </details>
 
 
 <details>
 <summary><strong>parse_wtmp.py</strong></summary>
+  
+---
 
-- **Description:**
+### 📌 Description
   - Parses Linux `wtmp` binary log files into human-readable structured CSV format.
   - Extracts login sessions, system events, and user activity records from binary structures.
+  
+---
 
-- **Features:**
+### ✨ Features
   - Supports both plain `wtmp` and `.gz` compressed files
   - Parses binary `utmp/wtmp` structures into readable fields
   - Extracts key session information:
@@ -414,44 +518,58 @@ A collection of Python scripts to parse common Linux log files into structured C
   - Maps numeric record types to descriptive labels
   - Handles malformed or partial records gracefully (skips invalid entries)
   - Batch processing of multiple files in a directory
+  
+---
 
-- **File parsed:**
+### 📂 File Parsed
   - `wtmp`
   - Variants supported:
     - `wtmp.N`
     - `wtmp-N`
     - `wtmp_<suffix>`
     - Compressed files (e.g., `.gz`)
+  
+---
 
-- **Auto detect file names in directory:**
+### 🤖 Auto Detect File Names in Directory
   - Yes
   - Matches files:
     - Starting with `wtmp`
     - Includes rotated and suffixed variants
     - Includes `.gz` files
+  
+---
 
-- **Default output file name:**
+### 📝 Default Output File Name
   - Input file name appended with `.csv`
   - Examples:
     - `wtmp` → `wtmp.csv`
     - `wtmp.1.gz` → `wtmp.1.gz.csv`
+  
+---
 
-- **Default output file location:**
+### 📍 Default Output File Location
   - Same directory as input file (for directory mode)
   - Current working directory (for single file mode, uses filename only)
+  
+---
 
-- **Output timezone:**
+### 🕒 Output Timezone
   - GMT+8
+  
+---
 
-- **Flags:**
+### 🚩 Flags
   - `-f`, `--file`
     - Parse a single `wtmp` file
   - `-d`, `--dir`
     - Parse all matching `wtmp` files in a directory
   - Notes:
     - Flags are mutually exclusive (must use either `-f` or `-d`)
+  
+---
 
-- **Usage:**
+### 🚀 Usage
   - Parse a single file:
     ```bash
     parse_wtmp.py -f /var/log/wtmp
@@ -464,5 +582,7 @@ A collection of Python scripts to parse common Linux log files into structured C
     ```bash
     parse_wtmp.py -d /var/log/
     ```
+  
+---
 
 </details>
