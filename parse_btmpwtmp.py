@@ -74,14 +74,18 @@ def is_wtmp_file(filename):
         filename == 'wtmp' or
         filename.startswith('wtmp-') or
         filename.startswith('wtmp.') or
-        filename.startswith('wtmp_')
+        filename.startswith('wtmp_') or
+        filename == 'btmp' or
+        filename.startswith('btmp-') or
+        filename.startswith('btmp.') or
+        filename.startswith('btmp_')
     ) and (filename.endswith('.gz') or '.' not in filename or filename.count('.') == 1)
 
 def main():
-    parser = argparse.ArgumentParser(description="Parse Linux wtmp or wtmp.gz files into CSV.")
+    parser = argparse.ArgumentParser(description="Parse Linux wtmp, wtmp.gz, btmp, btmp.gz files into CSV.")
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-f", "--file", help="Path to a single wtmp or wtmp.gz file")
-    group.add_argument("-d", "--dir", help="Path to a directory of wtmp files")
+    group.add_argument("-f", "--file", help="Path to a single wtmp, wtmp.gz, btmp, btmp.gz file")
+    group.add_argument("-d", "--dir", help="Path to a directory of wtmp or btmp files")
 
     args = parser.parse_args()
 
