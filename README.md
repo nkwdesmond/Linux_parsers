@@ -14,9 +14,9 @@ A collection of Python scripts to parse common Linux log files into structured C
 | parse_audit.py | audit.log |
 | parse_authSecure.py | auth.log and secure |
 | parse_bashHistory.py | .bash_history |
+| parse_btmpwtmp.py | btmp wtmp |
 | parse_lastlog_passwd.py | lastlog |
 | parse_syslogMessages.py | syslog and messages |
-| parse_wtmp.py | wtmp |
 
 ## 📦 Parsers
 <details>
@@ -301,6 +301,103 @@ A collection of Python scripts to parse common Linux log files into structured C
 
 
 <details>
+<summary><strong>parse_btmpwtmp.py</strong></summary>
+  
+---
+
+### 📌 Description
+  - Parses Linux `btmp` and `wtmp` binary log files into human-readable structured CSV format.
+  - Extracts login sessions, system events, and user activity records from binary structures.
+  
+---
+
+### ✨ Features
+  - Supports both plain `btmp`, `wtmp` and `.gz` compressed files
+  - Parses binary structures into readable fields
+  - Extracts key session information:
+    - `Timestamp (GMT+8)`
+    - `Username`
+    - `SessionID`
+    - `Terminal`
+    - `Host`
+    - `IP Address`
+    - `PID`
+    - `Type` (e.g., USER_PROCESS, DEAD_PROCESS, BOOT_TIME)
+  - Converts timestamps from epoch to human-readable format with millisecond precision
+  - Maps numeric record types to descriptive labels
+  - Handles malformed or partial records gracefully (skips invalid entries)
+  - Batch processing of multiple files in a directory
+  
+---
+
+### 📂 File Parsed
+  - `btmp` and `wtmp`
+  - Variants supported:
+    - `wtmp.N`
+    - `wtmp-N`
+    - `wtmp_<suffix>`
+    - Compressed files (e.g., `.gz`)
+  
+---
+
+### 🤖 Auto Detect File Names in Directory
+  - Yes
+  - Matches files:
+    - Starting with `wtmp` or `btmp`
+    - Includes rotated and suffixed variants
+    - Includes `.gz` files
+  
+---
+
+### 📝 Default Output File Name
+  - Input file name appended with `.csv`
+  - Examples:
+    - `btmp` → `btmp.csv`
+    - `wtmp.1.gz` → `wtmp.1.gz.csv`
+  
+---
+
+### 📍 Default Output File Location
+  - Same directory as input file (for directory mode)
+  - Current working directory (for single file mode, uses filename only)
+  
+---
+
+### 🕒 Output Timezone
+  - GMT+8
+  
+---
+
+### 🚩 Flags
+  - `-f`, `--file`
+    - Parse a single `btmp` or `wtmp` file
+  - `-d`, `--dir`
+    - Parse all matching `btmp` and `wtmp` files in a directory
+  - Notes:
+    - Flags are mutually exclusive (must use either `-f` or `-d`)
+  
+---
+
+### 🚀 Usage
+  - Parse a single file:
+    ```bash
+    parse_btmpwtmp.py -f /var/log/wtmp
+    ```
+  - Parse a compressed file:
+    ```bash
+    parse_btmpwtmp.py -f wtmp.1.gz
+    ```
+  - Parse all btmp and wtmp files in a directory:
+    ```bash
+    parse_btmpwtmp.py -d /var/log/
+    ```
+  
+---
+
+</details>
+
+
+<details>
 <summary><strong>parse_lastlog_passwd.py</strong></summary>
   
 ---
@@ -484,103 +581,6 @@ A collection of Python scripts to parse common Linux log files into structured C
   - Enable malformed log output:
     ```bash
     parse_syslogMessages.py -f syslog --log-malformed
-    ```
-  
----
-
-</details>
-
-
-<details>
-<summary><strong>parse_wtmp.py</strong></summary>
-  
----
-
-### 📌 Description
-  - Parses Linux `wtmp` binary log files into human-readable structured CSV format.
-  - Extracts login sessions, system events, and user activity records from binary structures.
-  
----
-
-### ✨ Features
-  - Supports both plain `wtmp` and `.gz` compressed files
-  - Parses binary `utmp/wtmp` structures into readable fields
-  - Extracts key session information:
-    - `Timestamp (GMT+8)`
-    - `Username`
-    - `SessionID`
-    - `Terminal`
-    - `Host`
-    - `IP Address`
-    - `PID`
-    - `Type` (e.g., USER_PROCESS, DEAD_PROCESS, BOOT_TIME)
-  - Converts timestamps from epoch to human-readable format with millisecond precision
-  - Maps numeric record types to descriptive labels
-  - Handles malformed or partial records gracefully (skips invalid entries)
-  - Batch processing of multiple files in a directory
-  
----
-
-### 📂 File Parsed
-  - `wtmp`
-  - Variants supported:
-    - `wtmp.N`
-    - `wtmp-N`
-    - `wtmp_<suffix>`
-    - Compressed files (e.g., `.gz`)
-  
----
-
-### 🤖 Auto Detect File Names in Directory
-  - Yes
-  - Matches files:
-    - Starting with `wtmp`
-    - Includes rotated and suffixed variants
-    - Includes `.gz` files
-  
----
-
-### 📝 Default Output File Name
-  - Input file name appended with `.csv`
-  - Examples:
-    - `wtmp` → `wtmp.csv`
-    - `wtmp.1.gz` → `wtmp.1.gz.csv`
-  
----
-
-### 📍 Default Output File Location
-  - Same directory as input file (for directory mode)
-  - Current working directory (for single file mode, uses filename only)
-  
----
-
-### 🕒 Output Timezone
-  - GMT+8
-  
----
-
-### 🚩 Flags
-  - `-f`, `--file`
-    - Parse a single `wtmp` file
-  - `-d`, `--dir`
-    - Parse all matching `wtmp` files in a directory
-  - Notes:
-    - Flags are mutually exclusive (must use either `-f` or `-d`)
-  
----
-
-### 🚀 Usage
-  - Parse a single file:
-    ```bash
-    parse_wtmp.py -f /var/log/wtmp
-    ```
-  - Parse a compressed file:
-    ```bash
-    parse_wtmp.py -f wtmp.1.gz
-    ```
-  - Parse all wtmp files in a directory:
-    ```bash
-    parse_wtmp.py -d /var/log/
     ```
   
 ---
